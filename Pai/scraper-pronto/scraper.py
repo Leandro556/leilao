@@ -135,9 +135,9 @@ def main():
             erros.append(erro)
 
     # Defina o remetente e senha (preferencialmente use variáveis de ambiente em produção!)
-    remetente = "leandrobertocchi1@gmail.com"
-    senha = "lqur lgvk dinz jeht"
-    destinatario = "michelebertochi@gmail.com, lbpela@gmail.com"
+    remetente = "leilaoscraper@gmail.com"
+    senha = "kxac cdlz zkwg qxsi"
+    destinatario = "lbpela@gmail.com, "
 
     enviar_email(todos_editais, erros, destinatario, remetente, senha)
 
