@@ -1,0 +1,6 @@
+name = "leiloes-scraper"
+main = "src/index.js"
+compatibility_date = "2025-09-17"
+
+# Se quiser usar domínio custom (Workers Routes), configure depois
+# routes = [{ pattern = "api.seudominio.com/leiloes", zone_name = "seudominio.com" }]

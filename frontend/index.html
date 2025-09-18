@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Editais de Leilão – Atualiza a cada F5</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
+    h1 { margin-bottom: 8px; }
+    .controls { display:flex; gap:12px; align-items:center; margin-bottom:16px; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { padding: 10px; border-bottom: 1px solid #ddd; vertical-align: top; }
+    .muted { color: #666; font-size: 12px; }
+    .badge { font-size: 12px; padding: 2px 6px; border: 1px solid #ccc; border-radius: 6px; }
+    #status { margin: 8px 0 16px; }
+    button { padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; background: #f7f7f7; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <h1>Editais de Leilão</h1>
+  <div class="controls">
+    <button id="btnReload">Atualizar agora</button>
+    <span id="status" class="muted"></span>
+  </div>
+  <table id="tbl">
+    <thead>
+      <tr>
+        <th>Título</th>
+        <th>Link</th>
+        <th>Origem</th>
+        <th>Coleta</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      <tr><td colspan="4" class="muted">Carregando…</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    // 🔁 Troque pela URL do seu Worker (ex.: https://leiloes-rodrigo.mydomain.workers.dev/)
+    const API = "https://SEU_WORKER_URL_AQUI";
+
+    const btn = document.getElementById('btnReload');
+    const tbody = document.getElementById('tbody');
+    const statusEl = document.getElementById('status');
+
+    async function load() {
+      btn.disabled = true;
+      statusEl.textContent = "Atualizando…";
+      try {
+        const res = await fetch(API, { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        render(data.editais || []);
+        if (data.erros && data.erros.length) {
+          console.warn("Erros:", data.erros);
+          statusEl.textContent = `Atualizado com avisos (${data.erros.length}) às ${new Date().toLocaleTimeString()}`;
+        } else {
+          statusEl.textContent = `Atualizado às ${new Date().toLocaleTimeString()}`;
+        }
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="4">Falha ao buscar dados: ${e}</td></tr>`;
+        statusEl.textContent = "Erro ao atualizar";
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function render(editais) {
+      if (!editais.length) {
+        tbody.innerHTML = `<tr><td colspan="4" class="muted">Nenhum edital encontrado agora. Tente novamente.</td></tr>`;
+        return;
+      }
+      const rows = editais.map(e => `
+        <tr>
+          <td>${escapeHtml(e.titulo)}</td>
+          <td><a href="${e.link}" target="_blank" rel="noopener">Abrir</a></td>
+          <td><span class="badge">${escapeHtml((new URL(e.site_origem)).hostname)}</span></td>
+          <td class="muted">${escapeHtml(e.data_coleta || "")}</td>
+        </tr>
+      `).join("");
+      tbody.innerHTML = rows;
+    }
+
+    function escapeHtml(s="") {
+      return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+    }
+
+    // Carrega ao abrir a página
+    load();
+    // Botão manual
+    btn.addEventListener('click', load);
+  </script>
+</body>
+</html>
