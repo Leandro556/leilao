@@ -1,8 +1,14 @@
 // Cloudflare Worker: scrape leilões e devolver JSON
 const LEILAO_SITES = [
+    "https://www.centralsuldeleiloes.com.br/leiloes",
     "https://www.serpaleiloes.com.br/?tipo=leilao",
     "https://www.portalzuk.com.br/leilao-de-imoveis/u/todos-imoveis/sc",
     "https://www.brasilsulleiloes.com.br/",
+    "https://www.kronleiloes.com.br/categorias/imoveis?searchType=opened&pageNumber=1&pageSize=30&orderBy=price:desc",
+    "https://www.machadoleiloeiro.com.br/",
+    "https://www.rechleiloes.com.br/",
+    "https://www.cargneluttileiloes.com.br/",
+    "https://www.nsleiloes.leilao.br/leilao/proximos",
   ];
   
   const BENS_INTERESSE = [
@@ -110,4 +116,3 @@ const LEILAO_SITES = [
       }
     }
   };
-  
