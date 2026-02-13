@@ -4,9 +4,6 @@ from datetime import datetime
 import pandas as pd
 import os
 import unicodedata
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from urllib.parse import urljoin
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
@@ -90,37 +87,14 @@ def buscar_editais_em_site(session: requests.Session, url: str):
     except Exception as e:
         return [], {"site": url, "erro": str(e), "tipo": type(e).__name__}
 
-def enviar_email(dados: list[dict], erros: list[dict], destinatario: str, remetente: str, senha: str):
-    msg = MIMEMultipart()
-    msg["From"] = remetente
-    msg["To"] = destinatario
-    msg["Subject"] = "📄 Editais de Leilões - Coleta Automática"
-
-    html = "<h2>Editais Encontrados:</h2>"
-    if dados:
-        html += "<ul>"
-        for item in dados:
-            html += f"<li><a href='{item['link']}'>{item['titulo']}</a> — {item['site_origem']} ({item['data_coleta']})</li>"
-        html += "</ul>"
-    else:
-        html += "<p>Nenhum edital encontrado.</p>"
-
-    if erros:
-        html += "<h3>⚠️ Erros encontrados:</h3><ul>"
-        for erro in erros:
-            html += f"<li><strong>{erro['site']}</strong>: {erro['erro']} ({erro['tipo']})</li>"
-        html += "</ul>"
-
-    msg.attach(MIMEText(html, "html"))
-
-    try:
-        with smtplib.SMTP("smtp.gmail.com", 587) as servidor:
-            servidor.starttls()
-            servidor.login(remetente, senha)
-            servidor.send_message(msg)
-            print("[✔️] E-mail enviado com sucesso.")
-    except Exception as e:
-        print(f"[❌] Erro ao enviar e-mail: {e}")
+def salvar_csv(base_nome: str, dados: list[dict]):
+    if not dados:
+        return None
+    pasta = "resultados_leiloes"
+    os.makedirs(pasta, exist_ok=True)
+    arquivo = os.path.join(pasta, f"{base_nome}_{datetime.now().strftime('%Y%m%d_%H%M')}.csv")
+    pd.DataFrame(dados).to_csv(arquivo, index=False, encoding="utf-8-sig")
+    return arquivo
 
 def main():
     session = build_session()
@@ -134,12 +108,16 @@ def main():
         if erro:
             erros.append(erro)
 
-    # Defina o remetente e senha (preferencialmente use variáveis de ambiente em produção!)
-    remetente = "leilaoscraper@gmail.com"
-    senha = "kxac cdlz zkwg qxsi"
-    destinatario = "lbpela@gmail.com, "
+    arq_ok = salvar_csv("editais", todos_editais)
+    arq_err = salvar_csv("erros", erros)
 
-    enviar_email(todos_editais, erros, destinatario, remetente, senha)
+    if arq_ok:
+        print(f"[OK] Editais salvos em: {arq_ok}")
+    else:
+        print("[!] Nenhum edital coletado.")
+
+    if arq_err:
+        print(f"[INFO] Erros salvos em: {arq_err}")
 
 if __name__ == "__main__":
     main()
