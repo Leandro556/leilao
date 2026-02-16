@@ -16,7 +16,7 @@ def solicitar_numeros():
 def calcular_soma(numeros):
     return sum(numeros)
 
-def calcular_porcentagem(soma, porcentagem = 0.02):
+def calcular_porcentagem(soma, porcentagem = 0.03):
     return soma * porcentagem
 
 def formatar_em_reais(valor):
